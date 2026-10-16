@@ -7,7 +7,6 @@ export default function BuyerOrders() {
    const [orders, setOrders] = useState([]);
    const { token } = useContext(AuthContext);
 
-   // 1. EXTRACTED: Moved this out so submitRating can use it to refresh the page!
    const fetchMyOrders = async () => {
       try {
          const res = await axios.get('http://localhost:5000/api/orders/my-orders', {
@@ -17,12 +16,10 @@ export default function BuyerOrders() {
       } catch (err) { console.error(err); }
    };
 
-   // Fetch initial orders
    useEffect(() => {
       if (token) fetchMyOrders();
    }, [token]);
 
-   // The Socket.io Live Connection
    useEffect(() => {
       const socket = io('http://localhost:5000');
 
@@ -37,7 +34,6 @@ export default function BuyerOrders() {
       return () => socket.disconnect();
    }, []);
 
-   // 2. THE NEW FUNCTION: Handles sending the rating to the backend
    const submitRating = async (orderId) => {
       const vendorRating = document.getElementById(`vendor-rate-${orderId}`).value;
       const driverRating = document.getElementById(`driver-rate-${orderId}`).value;
@@ -48,10 +44,17 @@ export default function BuyerOrders() {
             { headers: { Authorization: `Bearer ${token}` } }
          );
          alert("Thanks for your review!");
-         fetchMyOrders(); // <-- Instantly refreshes the screen so the rating box vanishes!
+         fetchMyOrders();
       } catch (err) {
          alert("Failed to submit rating.");
       }
+   };
+
+   // --- NEW: Helper function to display the correct badge ---
+   const getDeliveryLabel = (type) => {
+      if (type === 'Advance') return '🗓️ Scheduled (15 Days)';
+      if (type === 'Tomorrow') return '📅 Deliver Tomorrow';
+      return '⚡ Deliver Today'; // Default
    };
 
    return (
@@ -73,8 +76,9 @@ export default function BuyerOrders() {
                                  {new Date(order.createdAt).toLocaleDateString()}
                               </span>
                            </div>
+                           {/* Updated badge logic here */}
                            <span className={`badge ${order.deliveryType === 'Today' ? 'badge-today' : 'badge-scheduled'}`}>
-                              {order.deliveryType === 'Today' ? '⚡ Deliver Today' : '🗓️ Scheduled (15 Days)'}
+                              {getDeliveryLabel(order.deliveryType)}
                            </span>
                         </div>
 
@@ -101,7 +105,6 @@ export default function BuyerOrders() {
                            )}
                         </div>
 
-                        {/* 3. THE RATING UI: Appears dynamically at the bottom of the card */}
                         {order.status === 'Delivered' && !order.vendorRating && (
                            <div style={{ marginTop: '15px', padding: '15px', backgroundColor: '#f4fbf4', border: '1px solid #d1d5db', borderRadius: '8px' }}>
                               <p style={{ fontWeight: 'bold', marginBottom: '10px', color: '#1f2937' }}>Rate your experience:</p>

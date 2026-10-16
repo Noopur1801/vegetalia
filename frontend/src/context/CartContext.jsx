@@ -1,31 +1,52 @@
-import { createContext, useState } from 'react';
+import { createContext, useState, useEffect } from 'react';
 
 export const CartContext = createContext();
 
-export function CartProvider({ children }) {
-   const [cart, setCart] = useState([]);
+export const CartProvider = ({ children }) => {
+   // Load initial cart from local storage so it survives page refreshes!
+   const [cart, setCart] = useState(() => {
+      const savedCart = localStorage.getItem('vegetalia_cart');
+      return savedCart ? JSON.parse(savedCart) : [];
+   });
 
-   // Function to add a product to the cart
-   const addToCart = (product) => {
+   // Save to local storage whenever cart changes
+   useEffect(() => {
+      localStorage.setItem('vegetalia_cart', JSON.stringify(cart));
+   }, [cart]);
+
+   const addToCart = (newItem) => {
       setCart((prevCart) => {
-         // Check if item is already in cart to increase quantity instead of duplicating
-         const existingItem = prevCart.find(item => item.productId === product.productId);
+         // If item already exists, just increase its quantity
+         const existingItem = prevCart.find(item => item._id === newItem._id);
          if (existingItem) {
             return prevCart.map(item =>
-               item.productId === product.productId
-                  ? { ...item, quantity: item.quantity + 1 }
-                  : item
+               item._id === newItem._id ? { ...item, quantity: item.quantity + 1 } : item
             );
          }
-         return [...prevCart, { ...product, quantity: 1 }];
+         return [...prevCart, { ...newItem, quantity: 1 }];
       });
    };
 
-   const clearCart = () => setCart([]);
+   // --- NEW: Functions for the + and - buttons ---
+   const updateQuantity = (itemId, newQuantity) => {
+      setCart(prevCart =>
+         prevCart.map(item =>
+            item._id === itemId ? { ...item, quantity: newQuantity } : item
+         )
+      );
+   };
+
+   const removeFromCart = (itemId) => {
+      setCart(prevCart => prevCart.filter(item => item._id !== itemId));
+   };
+
+   const clearCart = () => {
+      setCart([]);
+   };
 
    return (
-      <CartContext.Provider value={{ cart, addToCart, clearCart }}>
+      <CartContext.Provider value={{ cart, addToCart, updateQuantity, removeFromCart, clearCart }}>
          {children}
       </CartContext.Provider>
    );
-}
+};

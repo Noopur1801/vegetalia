@@ -7,7 +7,8 @@ const vendorSchema = new mongoose.Schema({
   businessAddress: { type: String, default: '' },
   phone: { type: String, default: '' },
   rating: { type: Number, default: 0 },
-  isVerified: { type: Boolean, default: true }
+  isVerified: { type: Boolean, default: true },
+  shopImage: { type: String, default: '' } // <-- NEW: Stores the Cloudinary link
 }, { timestamps: true });
 
 export default mongoose.model('VendorProfile', vendorSchema);

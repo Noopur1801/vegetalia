@@ -1,65 +1,93 @@
-import { useState } from 'react';
-
-// --- DUMMY DATA FOR TOMORROW ---
-const TOMORROW_VENDORS = [
-   { id: 3, shopName: "Sunrise Organics", vendorName: "Priya Patel", rating: 4.9, discount: "New Harvest", desc: "Farm-fresh greens arriving tomorrow morning.", image: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=300" },
-   { id: 4, shopName: "The Root Cellar", vendorName: "Vikram Singh", rating: 4.6, discount: "5% OFF", desc: "Premium potatoes, onions, and root veggies.", image: "https://images.unsplash.com/photo-1550989460-0adf9ea622e2?w=300" }
-];
-
-const TOMORROW_PRODUCTS = {
-   vegetables: [
-      { id: 301, name: "Broccoli", price: "₹80/kg" },
-      { id: 302, name: "Sweet Potatoes", price: "₹50/kg" },
-      { id: 303, name: "Bell Peppers", price: "₹100/kg" }
-   ],
-   fruits: [
-      { id: 401, name: "Papaya", price: "₹60/piece" },
-      { id: 402, name: "Pomegranates", price: "₹150/kg" }
-   ]
-};
+import { useState, useEffect, useContext } from 'react';
+import axios from 'axios';
+import { AuthContext } from '../context/AuthContext';
+import { CartContext } from '../context/CartContext';
 
 export default function AvailableTomorrow() {
+   const [vendors, setVendors] = useState([]);
    const [selectedVendor, setSelectedVendor] = useState(null);
+   const { token } = useContext(AuthContext);
+   const { addToCart } = useContext(CartContext);
+
+   useEffect(() => {
+      const fetchData = async () => {
+         try {
+            const [prodRes, profRes] = await Promise.all([
+               axios.get('http://localhost:5000/api/products/all', { headers: { Authorization: `Bearer ${token}` } }),
+               axios.get('http://localhost:5000/api/vendor/all-profiles', { headers: { Authorization: `Bearer ${token}` } })
+            ]);
+
+            const tomorrowProducts = prodRes.data.filter(p => p.availability?.toLowerCase() === 'tomorrow');
+            const profiles = profRes.data;
+
+            const vendorMap = {};
+            tomorrowProducts.forEach(prod => {
+               if (!vendorMap[prod.vendorId]) {
+                  const vProfile = profiles.find(p => p.userId?._id === prod.vendorId || p.userId === prod.vendorId);
+                  vendorMap[prod.vendorId] = {
+                     id: prod.vendorId,
+                     shopName: vProfile?.businessName || prod.businessName || "Local Farm",
+                     rating: vProfile?.rating || "4.9",
+                     desc: "Farm-fresh greens arriving tomorrow morning.",
+                     shopImage: vProfile?.shopImage || "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=300",
+                     products: []
+                  };
+               }
+               vendorMap[prod.vendorId].products.push(prod);
+            });
+
+            setVendors(Object.values(vendorMap));
+         } catch (err) {
+            console.error("Error fetching data:", err);
+         }
+      };
+      if (token) fetchData();
+   }, [token]);
+
+   const categorizeProducts = (products) => {
+      const fruitKeywords = ['apple', 'banana', 'papaya', 'pomegranate', 'melon', 'mango', 'orange', 'pear', 'grape'];
+      const fruits = [];
+      const vegetables = [];
+      products.forEach(p => {
+         const isFruit = fruitKeywords.some(keyword => p.name.toLowerCase().includes(keyword));
+         if (isFruit) fruits.push(p);
+         else vegetables.push(p);
+      });
+      return { fruits, vegetables };
+   };
+
+   const handleAddToCart = (item) => {
+      if (addToCart) {
+         addToCart({ ...item, vendorName: selectedVendor.shopName, quantity: 1 });
+         alert(`${item.name} added to cart!`);
+      }
+   };
 
    return (
       <div>
-         {/* VIEW A: VENDOR LIST */}
          {!selectedVendor ? (
             <>
                <h2 style={{ marginTop: 0, marginBottom: '24px', fontSize: '24px', color: '#4b6043' }}>Vendors Available Tomorrow</h2>
                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
-                  {TOMORROW_VENDORS.map(vendor => (
-                     <div
-                        key={vendor.id}
-                        onClick={() => setSelectedVendor(vendor)}
-                        style={{ backgroundColor: 'white', borderRadius: '12px', border: '1px solid #c7ddb5', overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.2s', ':hover': { transform: 'translateY(-4px)' } }}
-                     >
-                        <img src={vendor.image} alt={vendor.shopName} style={{ width: '100%', height: '160px', objectFit: 'cover' }} />
+                  {vendors.length === 0 ? <p>No vendors scheduled for tomorrow.</p> : vendors.map(vendor => (
+                     <div key={vendor.id} onClick={() => setSelectedVendor(vendor)} style={{ backgroundColor: 'white', borderRadius: '12px', border: '1px solid #c7ddb5', overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.2s' }}>
+                        <img src={vendor.shopImage} alt={vendor.shopName} style={{ width: '100%', height: '160px', objectFit: 'cover' }} />
                         <div style={{ padding: '16px' }}>
-                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                              <h3 style={{ margin: 0, fontSize: '18px', color: '#4b6043' }}>{vendor.shopName}</h3>
-                              <span style={{ backgroundColor: '#ddead1', color: '#4b6043', padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}>⭐ {vendor.rating}</span>
-                           </div>
-                           <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#658354' }}>By {vendor.vendorName}</p>
+                           <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', color: '#4b6043' }}>{vendor.shopName}</h3>
                            <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#374151' }}>{vendor.desc}</p>
-                           <span style={{ backgroundColor: '#b3cf99', color: '#4b6043', padding: '4px 12px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>{vendor.discount}</span>
                         </div>
                      </div>
                   ))}
                </div>
             </>
          ) : (
-            /* VIEW B: INSIDE A SPECIFIC VENDOR */
             <>
-               <button
-                  onClick={() => setSelectedVendor(null)}
-                  style={{ background: 'none', border: 'none', color: '#658354', cursor: 'pointer', fontWeight: 'bold', marginBottom: '16px', padding: 0 }}
-               >
+               <button onClick={() => setSelectedVendor(null)} style={{ background: 'none', border: 'none', color: '#658354', cursor: 'pointer', fontWeight: 'bold', marginBottom: '16px', padding: 0 }}>
                   ← Back to Vendors
                </button>
 
                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '32px', backgroundColor: 'white', padding: '24px', borderRadius: '12px', border: '1px solid #c7ddb5' }}>
-                  <img src={selectedVendor.image} alt={selectedVendor.shopName} style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover' }} />
+                  <img src={selectedVendor.shopImage} alt={selectedVendor.shopName} style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover' }} />
                   <div>
                      <h2 style={{ margin: '0 0 8px 0', color: '#4b6043' }}>{selectedVendor.shopName}</h2>
                      <p style={{ margin: 0, color: '#658354' }}>{selectedVendor.desc} • ⭐ {selectedVendor.rating}</p>
@@ -67,27 +95,48 @@ export default function AvailableTomorrow() {
                </div>
 
                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
-                  {/* Vegetables Column */}
                   <div>
                      <h3 style={{ borderBottom: '2px solid #c7ddb5', paddingBottom: '8px', marginBottom: '16px', color: '#4b6043' }}>🥬 Vegetables</h3>
                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {TOMORROW_PRODUCTS.vegetables.map(item => (
-                           <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
-                              <span style={{ fontWeight: 'bold', color: '#374151' }}>{item.name}</span>
-                              <span style={{ color: '#658354', fontWeight: 'bold' }}>{item.price}</span>
+                        {categorizeProducts(selectedVendor.products).vegetables.map(item => (
+                           <div key={item._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                 <img
+                                    src={item.imageUrl || "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=100"}
+                                    alt={item.name}
+                                    style={{ width: '40px', height: '40px', borderRadius: '6px', objectFit: 'cover', border: '1px solid #e5e7eb' }}
+                                 />
+                                 <span style={{ fontWeight: 'bold', color: '#374151' }}>{item.name}</span>
+                              </div>
+
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                 <span style={{ color: '#658354', fontWeight: 'bold' }}>₹{item.price}/{item.unit}</span>
+                                 <button onClick={() => handleAddToCart(item)} style={{ backgroundColor: '#4b6043', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>Pre-order</button>
+                              </div>
                            </div>
                         ))}
                      </div>
                   </div>
-
-                  {/* Fruits Column */}
                   <div>
                      <h3 style={{ borderBottom: '2px solid #c7ddb5', paddingBottom: '8px', marginBottom: '16px', color: '#4b6043' }}>🍎 Fruits</h3>
                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {TOMORROW_PRODUCTS.fruits.map(item => (
-                           <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '16px', backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
-                              <span style={{ fontWeight: 'bold', color: '#374151' }}>{item.name}</span>
-                              <span style={{ color: '#658354', fontWeight: 'bold' }}>{item.price}</span>
+                        {categorizeProducts(selectedVendor.products).fruits.map(item => (
+                           <div key={item._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                 <img
+                                    src={item.imageUrl || "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=100"}
+                                    alt={item.name}
+                                    style={{ width: '40px', height: '40px', borderRadius: '6px', objectFit: 'cover', border: '1px solid #e5e7eb' }}
+                                 />
+                                 <span style={{ fontWeight: 'bold', color: '#374151' }}>{item.name}</span>
+                              </div>
+
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                 <span style={{ color: '#658354', fontWeight: 'bold' }}>₹{item.price}/{item.unit}</span>
+                                 <button onClick={() => handleAddToCart(item)} style={{ backgroundColor: '#4b6043', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>Pre-order</button>
+                              </div>
                            </div>
                         ))}
                      </div>

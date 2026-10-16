@@ -7,9 +7,9 @@ export default function VendorDashboard() {
    const [stats, setStats] = useState({ totalEarnings: 0, totalOrders: 0 });
    const { token, user } = useContext(AuthContext);
 
-   // Added gstNumber to the edit state
    const [isEditing, setIsEditing] = useState(false);
    const [editData, setEditData] = useState({ businessName: '', phone: '', address: '', gstNumber: '' });
+   const [imageFile, setImageFile] = useState(null); // <-- NEW: State for the file
 
    useEffect(() => {
       const fetchVendorData = async () => {
@@ -19,7 +19,6 @@ export default function VendorDashboard() {
             });
             setProfile(profileRes.data);
 
-            // Populate the edit form with existing data, including gstNumber
             setEditData({
                businessName: profileRes.data.businessName || '',
                phone: profileRes.data.phone || '',
@@ -42,13 +41,31 @@ export default function VendorDashboard() {
       setEditData({ ...editData, [e.target.name]: e.target.value });
    };
 
+   const handleFileChange = (e) => {
+      setImageFile(e.target.files[0]);
+   };
+
    const handleSave = async () => {
       try {
-         const res = await axios.put('http://localhost:5000/api/vendor/profile', editData, {
-            headers: { Authorization: `Bearer ${token}` }
+         // Create FormData to send the image file along with text data
+         const formData = new FormData();
+         formData.append('businessName', editData.businessName);
+         formData.append('phone', editData.phone);
+         formData.append('address', editData.address);
+         formData.append('gstNumber', editData.gstNumber);
+         if (imageFile) {
+            formData.append('shopImage', imageFile);
+         }
+
+         const res = await axios.put('http://localhost:5000/api/vendor/profile', formData, {
+            headers: { 
+               Authorization: `Bearer ${token}`,
+               'Content-Type': 'multipart/form-data' // Required for file uploads
+            }
          });
          setProfile(res.data.profile);
          setIsEditing(false);
+         setImageFile(null); // Reset file input
       } catch (err) {
          console.error("Error updating profile:", err);
          alert("Failed to update profile");
@@ -62,72 +79,85 @@ export default function VendorDashboard() {
          <h2 style={{ marginTop: 0, marginBottom: '24px', fontSize: '24px', color: '#4b6043' }}>Vendor Profile</h2>
 
          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px' }}>
-
-            {/* Profile Card */}
-            <div style={{ flex: '1 1 300px', backgroundColor: 'white', padding: '32px', borderRadius: '12px', border: '1px solid #c7ddb5' }}>
-
-               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  {isEditing ? (
-                     <input
-                        type="text"
-                        name="businessName"
-                        value={editData.businessName}
-                        onChange={handleEditChange}
-                        placeholder="Business Name"
-                        style={{ fontSize: '20px', padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px', width: '100%', marginRight: '12px' }}
-                     />
-                  ) : (
-                     <h3 style={{ margin: 0, color: '#4b6043', fontSize: '24px' }}>{profile.businessName || user.name}</h3>
-                  )}
-
-                  {!isEditing && (
-                     <button onClick={() => setIsEditing(true)} style={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
-                        Edit
-                     </button>
+            <div style={{ flex: '1 1 300px', backgroundColor: 'white', borderRadius: '12px', border: '1px solid #c7ddb5', overflow: 'hidden' }}>
+               
+               {/* Shop Image Banner */}
+               <div style={{ width: '100%', height: '150px', backgroundColor: '#e5e7eb', position: 'relative' }}>
+                  <img 
+                     src={profile.shopImage || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800'} 
+                     alt="Shop Cover" 
+                     style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
+                  {isEditing && (
+                     <div style={{ position: 'absolute', bottom: '10px', left: '10px', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 8px', borderRadius: '4px' }}>
+                        <input type="file" onChange={handleFileChange} accept="image/*" style={{ fontSize: '12px' }} />
+                     </div>
                   )}
                </div>
 
-               <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
-                     <span style={{ color: '#658354', fontSize: '14px', paddingTop: '8px' }}>Email:</span>
-                     <span style={{ color: '#374151', fontWeight: 'bold', fontSize: '14px', paddingTop: '8px' }}>{user.email}</span>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
-                     <span style={{ color: '#658354', fontSize: '14px', paddingTop: isEditing ? '10px' : '0' }}>Phone:</span>
+               <div style={{ padding: '32px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                      {isEditing ? (
-                        <input type="text" name="phone" value={editData.phone} onChange={handleEditChange} placeholder="Add phone number" style={{ padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', textAlign: 'right' }} />
+                        <input
+                           type="text"
+                           name="businessName"
+                           value={editData.businessName}
+                           onChange={handleEditChange}
+                           placeholder="Business Name"
+                           style={{ fontSize: '20px', padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px', width: '100%', marginRight: '12px' }}
+                        />
                      ) : (
-                        <span style={{ color: '#374151', fontWeight: 'bold', fontSize: '14px' }}>{profile.phone || '-'}</span>
+                        <h3 style={{ margin: 0, color: '#4b6043', fontSize: '24px' }}>{profile.businessName || user.name}</h3>
+                     )}
+
+                     {!isEditing && (
+                        <button onClick={() => setIsEditing(true)} style={{ backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+                           Edit
+                        </button>
                      )}
                   </div>
 
-                  {/* New GST Number Row */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
-                     <span style={{ color: '#658354', fontSize: '14px', paddingTop: isEditing ? '10px' : '0' }}>GST Number:</span>
-                     {isEditing ? (
-                        <input type="text" name="gstNumber" value={editData.gstNumber} onChange={handleEditChange} placeholder="Add GST Number" style={{ padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', textAlign: 'right' }} />
-                     ) : (
-                        <span style={{ color: '#374151', fontWeight: 'bold', fontSize: '14px' }}>{profile.gstNumber || '-'}</span>
-                     )}
+                  <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                     <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
+                        <span style={{ color: '#658354', fontSize: '14px', paddingTop: '8px' }}>Email:</span>
+                        <span style={{ color: '#374151', fontWeight: 'bold', fontSize: '14px', paddingTop: '8px' }}>{user.email}</span>
+                     </div>
+
+                     <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
+                        <span style={{ color: '#658354', fontSize: '14px', paddingTop: isEditing ? '10px' : '0' }}>Phone:</span>
+                        {isEditing ? (
+                           <input type="text" name="phone" value={editData.phone} onChange={handleEditChange} placeholder="Add phone number" style={{ padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', textAlign: 'right' }} />
+                        ) : (
+                           <span style={{ color: '#374151', fontWeight: 'bold', fontSize: '14px' }}>{profile.phone || '-'}</span>
+                        )}
+                     </div>
+
+                     <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
+                        <span style={{ color: '#658354', fontSize: '14px', paddingTop: isEditing ? '10px' : '0' }}>GST Number:</span>
+                        {isEditing ? (
+                           <input type="text" name="gstNumber" value={editData.gstNumber} onChange={handleEditChange} placeholder="Add GST Number" style={{ padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', textAlign: 'right' }} />
+                        ) : (
+                           <span style={{ color: '#374151', fontWeight: 'bold', fontSize: '14px' }}>{profile.gstNumber || '-'}</span>
+                        )}
+                     </div>
+
+                     <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
+                        <span style={{ color: '#658354', fontSize: '14px', paddingTop: isEditing ? '10px' : '0' }}>Address:</span>
+                        {isEditing ? (
+                           <textarea name="address" value={editData.address} onChange={handleEditChange} placeholder="Add address" style={{ padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', textAlign: 'right', width: '60%' }} />
+                        ) : (
+                           <span style={{ color: '#374151', fontWeight: 'bold', fontSize: '14px', textAlign: 'right', maxWidth: '60%' }}>{profile.address || '-'}</span>
+                        )}
+                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
-                     <span style={{ color: '#658354', fontSize: '14px', paddingTop: isEditing ? '10px' : '0' }}>Address:</span>
-                     {isEditing ? (
-                        <textarea name="address" value={editData.address} onChange={handleEditChange} placeholder="Add address" style={{ padding: '6px', border: '1px solid #d1d5db', borderRadius: '4px', textAlign: 'right', width: '60%' }} />
-                     ) : (
-                        <span style={{ color: '#374151', fontWeight: 'bold', fontSize: '14px', textAlign: 'right', maxWidth: '60%' }}>{profile.address || '-'}</span>
-                     )}
-                  </div>
+                  {isEditing && (
+                     <div style={{ marginTop: '20px', display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                        <button onClick={() => setIsEditing(false)} style={{ padding: '8px 16px', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
+                        <button onClick={handleSave} style={{ padding: '8px 16px', backgroundColor: '#4b6043', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Save</button>
+                     </div>
+                  )}
                </div>
-
-               {isEditing && (
-                  <div style={{ marginTop: '20px', display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                     <button onClick={() => setIsEditing(false)} style={{ padding: '8px 16px', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
-                     <button onClick={handleSave} style={{ padding: '8px 16px', backgroundColor: '#4b6043', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Save</button>
-                  </div>
-               )}
             </div>
 
             {/* Stats Card */}
