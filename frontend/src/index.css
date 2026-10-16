@@ -1,0 +1,161 @@
+/* src/index.css */
+
+/* 1. Global Background & Font */
+body {
+  background-color: #f4faef; /* Soft pale green background */
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #374151; 
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 2. Main Dashboard Layout */
+.dashboard-wrapper {
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* 3. The Main White Card (Mirrors the Login Box) */
+.dashboard-card {
+  background-color: #ffffff;
+  border-radius: 32px;
+  padding: 32px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+}
+
+/* 4. Typography */
+.heading-main {
+  color: #2d4d35; /* Dark forest green */
+  font-weight: 800;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  margin-top: 0;
+  margin-bottom: 24px;
+}
+
+.heading-sub {
+  color: #2d4d35;
+  font-weight: 700;
+  font-size: 18px;
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.text-muted {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+/* 5. Buttons */
+.btn-primary {
+  background-color: #5a924c; /* Earthy green */
+  color: #ffffff;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  width: 100%;
+  text-align: center;
+}
+
+.btn-primary:hover {
+  background-color: #4a783e;
+}
+
+.btn-secondary {
+  background-color: #ffffff;
+  color: #4b5563;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+}
+
+/* 6. Inputs & Forms */
+.input-field {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.input-field:focus {
+  border-color: #5a924c;
+  box-shadow: 0 0 0 2px rgba(90, 146, 76, 0.2);
+}
+
+/* 7. Inner Elements (Products, Order Rows, Active Jobs) */
+.inner-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 20px;
+  background-color: #ffffff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.inner-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  transform: translateY(-2px);
+}
+
+/* Grid specifically for Buyer Marketplace */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+/* 8. Status Badges */
+.badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-block;
+}
+
+.badge-today { background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+.badge-scheduled { background-color: #d1fae5; color: #047857; border: 1px solid #a7f3d0; }
+.badge-pending { background-color: #f3f4f6; color: #4b5563; }
+.badge-active { background-color: #bfdbfe; color: #1e40af; border: 1px solid #93c5fd; }
+
+/* 9. Admin Table */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-table th {
+  padding: 16px;
+  border-bottom: 2px solid #f3f4f6;
+  color: #9ca3af;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.admin-table td {
+  padding: 16px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 14px;
+  color: #374151;
+}
