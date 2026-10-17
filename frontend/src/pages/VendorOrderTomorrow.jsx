@@ -24,7 +24,7 @@ export default function VendorOrdersTomorrow() {
 
    const markAsReady = async (id) => {
       try {
-         await axios.put(`http://localhost:5000/api/orders/${id}/vendor-status`,
+         await axios.put(`import.meta.env.VITE_API_URL + '/api/orders/${id}/vendor-status`,
             { status: "Prepped" },
             { headers: { Authorization: `Bearer ${token}` } }
          );

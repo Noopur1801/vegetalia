@@ -39,7 +39,7 @@ export default function DeliveriesToday() {
    // Action: Accept a pending order
    const acceptOrder = async (id) => {
       try {
-         await axios.put(`http://localhost:5000/api/orders/${id}/accept`, {}, {
+         await axios.put(`import.meta.env.VITE_API_URL + '/api/orders/${id}/accept`, {}, {
             headers: { Authorization: `Bearer ${token}` }
          });
          fetchDeliveries();
@@ -52,7 +52,7 @@ export default function DeliveriesToday() {
    const updateStatus = async (id, currentStatus) => {
       let nextStatus = currentStatus === "Accepted" ? "In Transit" : "Delivered";
       try {
-         await axios.put(`http://localhost:5000/api/orders/${id}/status`,
+         await axios.put(`import.meta.env.VITE_API_URL + '/api/orders/${id}/status`,
             { status: nextStatus },
             { headers: { Authorization: `Bearer ${token}` } }
          );

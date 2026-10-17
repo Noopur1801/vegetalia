@@ -22,7 +22,7 @@ export default function VendorMyProducts() {
 
    const markOutofStock = async (productId) => {
       try {
-         await axios.put(`http://localhost:5000/api/products/${productId}`,
+         await axios.put(`import.meta.env.VITE_API_URL + '/api/products/${productId}`,
             { stock: 0 },
             { headers: { Authorization: `Bearer ${token}` } }
          );
@@ -36,7 +36,7 @@ export default function VendorMyProducts() {
    const deleteProduct = async (productId) => {
       if (!window.confirm("Are you sure you want to delete this product?")) return;
       try {
-         await axios.delete(`http://localhost:5000/api/products/${productId}`, {
+         await axios.delete(`import.meta.env.VITE_API_URL + '/api/products/${productId}`, {
             headers: { Authorization: `Bearer ${token}` }
          });
          setProducts(products.filter(p => p._id !== productId));

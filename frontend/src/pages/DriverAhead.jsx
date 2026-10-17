@@ -42,7 +42,7 @@ export default function DriverAhead() {
 
    const acceptDelivery = async (id) => {
       try {
-         await axios.put(`http://localhost:5000/api/orders/${id}/accept`, {}, {
+         await axios.put(`import.meta.env.VITE_API_URL + '/api/orders/${id}/accept`, {}, {
             headers: { Authorization: `Bearer ${token}` }
          });
          alert("Scheduled route accepted successfully!");

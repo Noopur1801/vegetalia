@@ -35,7 +35,7 @@ export default function VendorProducts() {
 
    const handleDelete = async (id) => {
       try {
-         await axios.delete(`http://localhost:5000/api/products/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+         await axios.delete(`import.meta.env.VITE_API_URL + '/api/products/${id}`, { headers: { Authorization: `Bearer ${token}` } });
          fetchProducts();
       } catch (err) { console.error(err); }
    };

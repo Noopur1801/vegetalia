@@ -21,7 +21,7 @@ export default function DriverDeliveries() {
 
    const acceptOrder = async (orderId) => {
       try {
-         await axios.put(`http://localhost:5000/api/orders/${orderId}/accept`, {}, {
+         await axios.put(`import.meta.env.VITE_API_URL + '/api/orders/${orderId}/accept`, {}, {
             headers: { Authorization: `Bearer ${token}` }
          });
          alert("Delivery accepted! Time to hit the road.");

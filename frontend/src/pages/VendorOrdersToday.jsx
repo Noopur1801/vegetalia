@@ -25,7 +25,7 @@ export default function VendorOrdersToday() {
    // Note: This only updates the screen temporarily. We will need a backend route to save this!
    const markAsPacked = async (id) => {
       try {
-         await axios.put(`http://localhost:5000/api/orders/${id}/vendor-status`,
+         await axios.put(`import.meta.env.VITE_API_URL + '/api/orders/${id}/vendor-status`,
             { status: "Packed" },
             { headers: { Authorization: `Bearer ${token}` } }
          );

@@ -39,7 +39,7 @@ export default function BuyerOrders() {
       const driverRating = document.getElementById(`driver-rate-${orderId}`).value;
 
       try {
-         await axios.put(`http://localhost:5000/api/orders/${orderId}/rate`,
+         await axios.put(`import.meta.env.VITE_API_URL + '/api/orders/${orderId}/rate`,
             { vendorRating: Number(vendorRating), driverRating: Number(driverRating) },
             { headers: { Authorization: `Bearer ${token}` } }
          );
