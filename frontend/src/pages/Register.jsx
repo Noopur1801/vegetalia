@@ -18,7 +18,9 @@ export default function Register() {
       setSuccess('');
 
       try {
-         await axios.post(import.meta.env.VITE_API_URL + '/api/auth/register', {
+         const API_URL = import.meta.env.VITE_API_URL || 'https://vegetation-i19h.onrender.com';
+
+         await axios.post(`${API_URL}/api/auth/register`, {
             email,
             password,
             role
