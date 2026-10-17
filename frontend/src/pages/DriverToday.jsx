@@ -10,7 +10,7 @@ export default function DeliveriesToday() {
    const fetchDeliveries = async () => {
       try {
          // Using your actual backend route for driver orders
-         const res = await axios.get('http://localhost:5000/api/orders/driver/active', {
+         const res = await axios.get(import.meta.env.VITE_API_URL + '/api/orders/driver/active', {
             headers: { Authorization: `Bearer ${token}` }
          });
 
@@ -28,7 +28,7 @@ export default function DeliveriesToday() {
 
    // Real-time Socket.io updates
    useEffect(() => {
-      const socket = io('http://localhost:5000');
+      const socket = io(import.meta.env.VITE_API_URL + '');
 
       socket.on('newOrder', () => { fetchDeliveries(); });
       socket.on('orderStatusUpdated', () => { fetchDeliveries(); });

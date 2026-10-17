@@ -9,7 +9,7 @@ export default function VendorOrdersTomorrow() {
    useEffect(() => {
       const fetchOrders = async () => {
          try {
-            const res = await axios.get('http://localhost:5000/api/orders/vendor', {
+            const res = await axios.get(import.meta.env.VITE_API_URL + '/api/orders/vendor', {
                headers: { Authorization: `Bearer ${token}` }
             });
             // Filter Scheduled orders (You can adjust this filter later if you add specific dates to the backend)

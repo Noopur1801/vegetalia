@@ -14,7 +14,7 @@ export default function VendorDashboard() {
    useEffect(() => {
       const fetchVendorData = async () => {
          try {
-            const profileRes = await axios.get('http://localhost:5000/api/vendor/profile', {
+            const profileRes = await axios.get(import.meta.env.VITE_API_URL + '/api/vendor/profile', {
                headers: { Authorization: `Bearer ${token}` }
             });
             setProfile(profileRes.data);
@@ -26,7 +26,7 @@ export default function VendorDashboard() {
                gstNumber: profileRes.data.gstNumber || ''
             });
 
-            const statsRes = await axios.get('http://localhost:5000/api/vendor/stats', {
+            const statsRes = await axios.get(import.meta.env.VITE_API_URL + '/api/vendor/stats', {
                headers: { Authorization: `Bearer ${token}` }
             });
             setStats(statsRes.data);
@@ -57,8 +57,8 @@ export default function VendorDashboard() {
             formData.append('shopImage', imageFile);
          }
 
-         const res = await axios.put('http://localhost:5000/api/vendor/profile', formData, {
-            headers: { 
+         const res = await axios.put(import.meta.env.VITE_API_URL + '/api/vendor/profile', formData, {
+            headers: {
                Authorization: `Bearer ${token}`,
                'Content-Type': 'multipart/form-data' // Required for file uploads
             }
@@ -80,13 +80,13 @@ export default function VendorDashboard() {
 
          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px' }}>
             <div style={{ flex: '1 1 300px', backgroundColor: 'white', borderRadius: '12px', border: '1px solid #c7ddb5', overflow: 'hidden' }}>
-               
+
                {/* Shop Image Banner */}
                <div style={{ width: '100%', height: '150px', backgroundColor: '#e5e7eb', position: 'relative' }}>
-                  <img 
-                     src={profile.shopImage || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800'} 
-                     alt="Shop Cover" 
-                     style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  <img
+                     src={profile.shopImage || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800'}
+                     alt="Shop Cover"
+                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                   {isEditing && (
                      <div style={{ position: 'absolute', bottom: '10px', left: '10px', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 8px', borderRadius: '4px' }}>

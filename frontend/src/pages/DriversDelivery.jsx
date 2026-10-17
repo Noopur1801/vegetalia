@@ -12,7 +12,7 @@ export default function DriverDeliveries() {
 
    const fetchPendingOrders = async () => {
       try {
-         const res = await axios.get('http://localhost:5000/api/orders/pending', {
+         const res = await axios.get(import.meta.env.VITE_API_URL + '/api/orders/pending', {
             headers: { Authorization: `Bearer ${token}` }
          });
          setOrders(res.data);

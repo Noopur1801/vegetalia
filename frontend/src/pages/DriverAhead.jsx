@@ -10,7 +10,7 @@ export default function DriverAhead() {
    const fetchAheadDeliveries = async () => {
       try {
          // Fetches active/available orders from your backend[cite: 8]
-         const res = await axios.get('http://localhost:5000/api/orders/driver/active', {
+         const res = await axios.get(import.meta.env.VITE_API_URL + '/api/orders/driver/active', {
             headers: { Authorization: `Bearer ${token}` }
          });
 
@@ -32,7 +32,7 @@ export default function DriverAhead() {
 
    // Real-time Socket.io updates
    useEffect(() => {
-      const socket = io('http://localhost:5000');
+      const socket = io(import.meta.env.VITE_API_URL + '');
 
       socket.on('newOrder', () => { fetchAheadDeliveries(); });
       socket.on('orderStatusUpdated', () => { fetchAheadDeliveries(); });

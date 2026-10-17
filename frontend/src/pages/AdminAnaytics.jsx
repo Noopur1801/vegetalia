@@ -10,7 +10,7 @@ export default function AdminAnalytics() {
    useEffect(() => {
       const fetchAnalytics = async () => {
          try {
-            const res = await axios.get('http://localhost:5000/api/admin/analytics', {
+            const res = await axios.get(import.meta.env.VITE_API_URL + '/api/admin/analytics', {
                headers: { Authorization: `Bearer ${token}` }
             });
             setStats(res.data);

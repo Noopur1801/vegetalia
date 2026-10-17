@@ -10,7 +10,7 @@ export default function AdminDrivers() {
    useEffect(() => {
       const fetchDrivers = async () => {
          try {
-            const res = await axios.get('http://localhost:5000/api/admin/drivers', {
+            const res = await axios.get(import.meta.env.VITE_API_URL + '/api/admin/drivers', {
                headers: { Authorization: `Bearer ${token}` }
             });
             setDrivers(res.data);

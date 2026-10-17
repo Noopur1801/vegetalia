@@ -9,7 +9,7 @@ export default function VendorMyProducts() {
    useEffect(() => {
       const fetchMyProducts = async () => {
          try {
-            const res = await axios.get('http://localhost:5000/api/products/my-products', {
+            const res = await axios.get(import.meta.env.VITE_API_URL + '/api/products/my-products', {
                headers: { Authorization: `Bearer ${token}` }
             });
             setProducts(res.data);

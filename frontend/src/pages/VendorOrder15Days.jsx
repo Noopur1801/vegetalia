@@ -9,7 +9,7 @@ export default function VendorOrders15Days() {
    useEffect(() => {
       const fetchOrders = async () => {
          try {
-            const res = await axios.get('http://localhost:5000/api/orders/vendor', {
+            const res = await axios.get(import.meta.env.VITE_API_URL + '/api/orders/vendor', {
                headers: { Authorization: `Bearer ${token}` }
             });
             // Empty placeholder filter until a 15-day flag is added to the backend model

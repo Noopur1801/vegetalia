@@ -10,7 +10,7 @@ export default function AdminVendors() {
    useEffect(() => {
       const fetchVendors = async () => {
          try {
-            const res = await axios.get('http://localhost:5000/api/admin/vendors', {
+            const res = await axios.get(import.meta.env.VITE_API_URL + '/api/admin/vendors', {
                headers: { Authorization: `Bearer ${token}` }
             });
             setVendors(res.data);

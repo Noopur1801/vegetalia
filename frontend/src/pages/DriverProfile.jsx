@@ -10,12 +10,12 @@ export default function DriverProfile() {
    useEffect(() => {
       const fetchDriverData = async () => {
          try {
-            const profileRes = await axios.get('http://localhost:5000/api/driver/profile', {
+            const profileRes = await axios.get(import.meta.env.VITE_API_URL + '/api/driver/profile', {
                headers: { Authorization: `Bearer ${token}` }
             });
             setProfile(profileRes.data);
 
-            const statsRes = await axios.get('http://localhost:5000/api/driver/stats', {
+            const statsRes = await axios.get(import.meta.env.VITE_API_URL + '/api/driver/stats', {
                headers: { Authorization: `Bearer ${token}` }
             });
             setStats(statsRes.data);

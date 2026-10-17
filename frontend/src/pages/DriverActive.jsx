@@ -18,7 +18,7 @@ export default function DriverActive() {
 
    const fetchActiveJobs = async () => {
       try {
-         const res = await axios.get('http://localhost:5000/api/orders/driver/active', {
+         const res = await axios.get(import.meta.env.VITE_API_URL + '/api/orders/driver/active', {
             headers: { Authorization: `Bearer ${token}` }
          });
          setOrders(res.data);

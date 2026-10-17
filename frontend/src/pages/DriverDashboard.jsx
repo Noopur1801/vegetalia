@@ -16,7 +16,7 @@ export default function DriverDashboard() {
    useEffect(() => {
       const fetchProfile = async () => {
          try {
-            const res = await axios.get('http://localhost:5000/api/driver/profile', { headers: { Authorization: `Bearer ${token}` } });
+            const res = await axios.get(import.meta.env.VITE_API_URL + '/api/driver/profile', { headers: { Authorization: `Bearer ${token}` } });
             setProfile(res.data);
             setFormData({
                fullName: res.data.fullName || '',
@@ -31,7 +31,7 @@ export default function DriverDashboard() {
    const handleUpdate = async (e) => {
       e.preventDefault();
       try {
-         const res = await axios.put('http://localhost:5000/api/driver/profile', formData, { headers: { Authorization: `Bearer ${token}` } });
+         const res = await axios.put(import.meta.env.VITE_API_URL + '/api/driver/profile', formData, { headers: { Authorization: `Bearer ${token}` } });
          setProfile(res.data.profile);
          setIsEditing(false);
       } catch (err) { alert("Failed to update profile"); }

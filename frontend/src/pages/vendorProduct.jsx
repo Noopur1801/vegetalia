@@ -15,7 +15,7 @@ export default function VendorProducts() {
 
    const fetchProducts = async () => {
       try {
-         const res = await axios.get('http://localhost:5000/api/products/my-products', { headers: { Authorization: `Bearer ${token}` } });
+         const res = await axios.get(import.meta.env.VITE_API_URL + '/api/products/my-products', { headers: { Authorization: `Bearer ${token}` } });
          setProducts(res.data);
       } catch (err) { console.error(err); }
    };
@@ -23,7 +23,7 @@ export default function VendorProducts() {
    const handleAddProduct = async (e) => {
       e.preventDefault();
       try {
-         await axios.post('http://localhost:5000/api/products', formData, { headers: { Authorization: `Bearer ${token}` } });
+         await axios.post(import.meta.env.VITE_API_URL + '/api/products', formData, { headers: { Authorization: `Bearer ${token}` } });
          fetchProducts();
 
          // 2. CLEAR imageUrl ON RESET

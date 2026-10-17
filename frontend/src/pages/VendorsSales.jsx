@@ -11,7 +11,7 @@ export default function VendorSales() {
    useEffect(() => {
       const fetchVendorOrders = async () => {
          try {
-            const res = await axios.get('http://localhost:5000/api/orders/vendor', {
+            const res = await axios.get(import.meta.env.VITE_API_URL + '/api/orders/vendor', {
                headers: { Authorization: `Bearer ${token}` }
             });
             setOrders(res.data);
@@ -22,7 +22,7 @@ export default function VendorSales() {
 
    // 2. The Live Socket.io Connection
    useEffect(() => {
-      const socket = io('http://localhost:5000');
+      const socket = io(import.meta.env.VITE_API_URL + '');
 
       socket.on('orderStatusUpdated', (updatedOrder) => {
          setOrders(prevOrders => {

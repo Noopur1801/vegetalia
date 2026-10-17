@@ -25,7 +25,7 @@ export default function Cart() {
       else if (hasTomorrow) orderDeliveryType = 'Tomorrow';
 
       try {
-         await axios.post('http://localhost:5000/api/orders', {
+         await axios.post(import.meta.env.VITE_API_URL + '/api/orders', {
             items: cart,
             totalAmount: totalAmount,
             deliveryType: orderDeliveryType

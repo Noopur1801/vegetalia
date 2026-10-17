@@ -13,7 +13,7 @@ export default function BuyerProfile() {
    useEffect(() => {
       const fetchBuyerData = async () => {
          try {
-            const profileRes = await axios.get('http://localhost:5000/api/buyer/profile', {
+            const profileRes = await axios.get(import.meta.env.VITE_API_URL + '/api/buyer/profile', {
                headers: { Authorization: `Bearer ${token}` }
             });
             setProfile(profileRes.data);
@@ -23,7 +23,7 @@ export default function BuyerProfile() {
                address: profileRes.data?.address || ''
             });
 
-            const ordersRes = await axios.get('http://localhost:5000/api/buyer/orders', {
+            const ordersRes = await axios.get(import.meta.env.VITE_API_URL + '/api/buyer/orders', {
                headers: { Authorization: `Bearer ${token}` }
             });
             setOrders(ordersRes.data);
@@ -40,7 +40,7 @@ export default function BuyerProfile() {
 
    const handleSave = async () => {
       try {
-         const res = await axios.put('http://localhost:5000/api/buyer/profile', editData, {
+         const res = await axios.put(import.meta.env.VITE_API_URL + '/api/buyer/profile', editData, {
             headers: { Authorization: `Bearer ${token}` }
          });
 

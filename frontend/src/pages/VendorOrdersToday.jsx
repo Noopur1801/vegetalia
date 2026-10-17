@@ -9,7 +9,7 @@ export default function VendorOrdersToday() {
    useEffect(() => {
       const fetchOrders = async () => {
          try {
-            const res = await axios.get('http://localhost:5000/api/orders/vendor', {
+            const res = await axios.get(import.meta.env.VITE_API_URL + '/api/orders/vendor', {
                headers: { Authorization: `Bearer ${token}` }
             });
             // Filter only orders with deliveryType "Today"

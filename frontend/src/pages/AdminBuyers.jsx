@@ -10,7 +10,7 @@ export default function AdminBuyers() {
    useEffect(() => {
       const fetchBuyers = async () => {
          try {
-            const res = await axios.get('http://localhost:5000/api/admin/buyers', {
+            const res = await axios.get(import.meta.env.VITE_API_URL + '/api/admin/buyers', {
                headers: { Authorization: `Bearer ${token}` }
             });
             setBuyers(res.data);

@@ -9,7 +9,7 @@ export default function VendorReviews() {
    useEffect(() => {
       const fetchVendorReviews = async () => {
          try {
-            const res = await axios.get('http://localhost:5000/api/vendors/reviews', {
+            const res = await axios.get(import.meta.env.VITE_API_URL + '/api/vendors/reviews', {
                headers: { Authorization: `Bearer ${token}` }
             });
             setReviews(res.data);

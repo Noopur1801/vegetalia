@@ -12,7 +12,7 @@ export default function SideNav({ isOpen }) {
    useEffect(() => {
       const fetchSidebarProducts = async () => {
          try {
-            const res = await axios.get('http://localhost:5000/api/products/all', {
+            const res = await axios.get(import.meta.env.VITE_API_URL + '/api/products/all', {
                headers: { Authorization: `Bearer ${token}` }
             });
             setProducts(res.data);

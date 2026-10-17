@@ -13,8 +13,8 @@ export default function AvailableToday() {
       const fetchData = async () => {
          try {
             const [prodRes, profRes] = await Promise.all([
-               axios.get('http://localhost:5000/api/products/all', { headers: { Authorization: `Bearer ${token}` } }),
-               axios.get('http://localhost:5000/api/vendor/all-profiles', { headers: { Authorization: `Bearer ${token}` } })
+               axios.get(import.meta.env.VITE_API_URL + '/api/products/all', { headers: { Authorization: `Bearer ${token}` } }),
+               axios.get(import.meta.env.VITE_API_URL + '/api/vendor/all-profiles', { headers: { Authorization: `Bearer ${token}` } })
             ]);
 
             const todayProducts = prodRes.data.filter(p => !p.availability || p.availability.toLowerCase() === 'today');

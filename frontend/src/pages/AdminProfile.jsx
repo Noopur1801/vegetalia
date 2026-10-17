@@ -12,7 +12,7 @@ export default function AdminProfile() {
    useEffect(() => {
       const fetchAdminProfile = async () => {
          try {
-            const res = await axios.get('http://localhost:5000/api/admin/profile', {
+            const res = await axios.get(import.meta.env.VITE_API_URL + '/api/admin/profile', {
                headers: { Authorization: `Bearer ${token}` }
             });
             setProfile(res.data);
@@ -28,7 +28,7 @@ export default function AdminProfile() {
 
    const handleSave = async () => {
       try {
-         const res = await axios.put('http://localhost:5000/api/admin/profile', formData, {
+         const res = await axios.put(import.meta.env.VITE_API_URL + '/api/admin/profile', formData, {
             headers: { Authorization: `Bearer ${token}` }
          });
          setProfile(res.data);

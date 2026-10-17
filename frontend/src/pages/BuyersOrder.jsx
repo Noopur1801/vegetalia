@@ -9,7 +9,7 @@ export default function BuyerOrders() {
 
    const fetchMyOrders = async () => {
       try {
-         const res = await axios.get('http://localhost:5000/api/orders/my-orders', {
+         const res = await axios.get(import.meta.env.VITE_API_URL + '/api/orders/my-orders', {
             headers: { Authorization: `Bearer ${token}` }
          });
          setOrders(res.data);
@@ -21,7 +21,7 @@ export default function BuyerOrders() {
    }, [token]);
 
    useEffect(() => {
-      const socket = io('http://localhost:5000');
+      const socket = io(import.meta.env.VITE_API_URL + '');
 
       socket.on('orderStatusUpdated', (updatedOrder) => {
          setOrders(prevOrders =>

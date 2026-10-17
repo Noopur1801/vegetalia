@@ -10,7 +10,7 @@ export default function VendorDeliveryPartners() {
    useEffect(() => {
       const fetchDrivers = async () => {
          try {
-            const res = await axios.get('http://localhost:5000/api/driver/all-profiles', {
+            const res = await axios.get(import.meta.env.VITE_API_URL + '/api/driver/all-profiles', {
                headers: { Authorization: `Bearer ${token}` }
             });
             setDrivers(res.data);
