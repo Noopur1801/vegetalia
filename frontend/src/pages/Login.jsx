@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext.jsx'; // <-- Make sure this import is here
 import './Login.css';
 
 export default function Login() {
@@ -9,6 +10,7 @@ export default function Login() {
    const [showPassword, setShowPassword] = useState(false);
    const [error, setError] = useState('');
 
+   const { login } = useContext(AuthContext); // <-- Grab login from context
    const navigate = useNavigate();
 
    const handleLogin = async (e) => {
@@ -16,15 +18,9 @@ export default function Login() {
       setError('');
 
       try {
-         // Bulletproof backend URL: uses environment variable if available, 
-         // otherwise falls back directly to your live Render backend
          const API_URL = import.meta.env.VITE_API_URL || 'https://vegetation-i19h.onrender.com';
-
-         // Ensure we don't end up with double slashes
          const cleanBaseUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
          const loginEndpoint = `${cleanBaseUrl}/api/auth/login`;
-
-         console.log("Attempting login to:", loginEndpoint);
 
          const response = await axios.post(loginEndpoint, {
             email,
@@ -32,14 +28,10 @@ export default function Login() {
          });
 
          const { token, user } = response.data;
-
-         // Safely store token and user object
-         if (token) localStorage.setItem('token', token);
-
          const userData = user || { role: response.data.role, id: response.data.userId };
-         if (userData) {
-            localStorage.setItem('user', JSON.stringify(userData));
-         }
+
+         // 🔑 CRITICAL: Update the AuthContext state so ProtectedRoute recognizes you are logged in!
+         login(token, userData);
 
          const userRole = userData?.role;
 
