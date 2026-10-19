@@ -16,23 +16,34 @@ export default function Login() {
       setError('');
 
       try {
-         // Hardcode the backend URL directly to test and eliminate environment variable issues
-         const API_URL = 'https://vegetation-i19h.onrender.com';
+         // Bulletproof backend URL: uses environment variable if available, 
+         // otherwise falls back directly to your live Render backend
+         const API_URL = import.meta.env.VITE_API_URL || 'https://vegetation-i19h.onrender.com';
 
-         const response = await axios.post(`${API_URL}/api/auth/login`, {
+         // Ensure we don't end up with double slashes
+         const cleanBaseUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+         const loginEndpoint = `${cleanBaseUrl}/api/auth/login`;
+
+         console.log("Attempting login to:", loginEndpoint);
+
+         const response = await axios.post(loginEndpoint, {
             email,
             password
          });
 
          const { token, user } = response.data;
 
+         // Safely store token and user object
          if (token) localStorage.setItem('token', token);
-         if (user) {
-            localStorage.setItem('user', JSON.stringify(user));
+
+         const userData = user || { role: response.data.role, id: response.data.userId };
+         if (userData) {
+            localStorage.setItem('user', JSON.stringify(userData));
          }
 
-         const userRole = user?.role || response.data.role;
+         const userRole = userData?.role;
 
+         // Redirect based on role
          if (userRole === 'vendor') {
             navigate('/vendor/sales');
          } else if (userRole === 'buyer') {
@@ -46,9 +57,11 @@ export default function Login() {
          }
 
       } catch (err) {
+         console.error("Login error:", err);
          setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
       }
    };
+
    return (
       <div className="login-container">
          <div className="vegetable-decorations" aria-hidden="true">
