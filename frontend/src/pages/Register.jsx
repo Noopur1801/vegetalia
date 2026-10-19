@@ -30,7 +30,9 @@ export default function Register() {
          setSuccess('Account created successfully! Redirecting...');
          setTimeout(() => navigate('/login'), 2000);
       } catch (err) {
-         setError(err.response?.data?.message || 'Registration failed.');
+         console.error("Full registration error:", err);
+         // This will show us the exact error message on your screen!
+         setError(err.response?.data?.message || err.message || JSON.stringify(err));
       }
    };
 
