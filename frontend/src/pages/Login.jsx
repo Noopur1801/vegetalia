@@ -17,7 +17,8 @@ export default function Login() {
 
       try {
          const API_URL = import.meta.env.VITE_API_URL || 'https://vegetation-i19h.onrender.com';
-         const response = await axios.post(`${API_URL}/api/auth/login`, {
+         // Clean and direct:
+         const response = await axios.post('https://vegetation-i19h.onrender.com/api/auth/login', {
             email,
             password
          });
