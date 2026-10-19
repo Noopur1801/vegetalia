@@ -4,21 +4,29 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
    const [user, setUser] = useState(null);
-   const [token, setToken] = useState(localStorage.getItem('token') || null);
+   const [token, setToken] = useState(() => {
+      const savedToken = localStorage.getItem('token');
+      return (savedToken && savedToken !== 'undefined') ? savedToken : null;
+   });
 
    useEffect(() => {
-      // Rehydrate user state from localStorage on page load
+      // Rehydrate user state safely from localStorage on page load
       const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-         setUser(JSON.parse(savedUser));
+      if (savedUser && savedUser !== 'undefined') {
+         try {
+            setUser(JSON.parse(savedUser));
+         } catch (err) {
+            console.error("Failed to parse user from localStorage:", err);
+            localStorage.removeItem('user');
+         }
       }
    }, []);
 
    const login = (newToken, userData) => {
       setToken(newToken);
       setUser(userData);
-      localStorage.setItem('token', newToken);
-      localStorage.setItem('user', JSON.stringify(userData));
+      if (newToken) localStorage.setItem('token', newToken);
+      if (userData) localStorage.setItem('user', JSON.stringify(userData));
    };
 
    const logout = () => {
