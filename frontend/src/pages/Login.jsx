@@ -18,29 +18,37 @@ export default function Login() {
       setError('');
 
       try {
-         const response = await axios.post(import.meta.env.VITE_API_URL + '/api/auth/login', {
+         const API_URL = import.meta.env.VITE_API_URL || 'https://vegetation-i19h.onrender.com';
+         const response = await axios.post(`${API_URL}/api/auth/login`, {
             email,
             password
          });
 
-         // 1. Grab token and the nested user object from the backend
-         const { token, user } = response.data;
+         console.log("Login response data:", response.data); // Check your browser console to see this
 
-         // 2. Send the ENTIRE user object to your AuthContext
-         login(token, user);
+         // Safely extract token and role whether backend returns nested user or flat data
+         const token = response.data.token;
+         const userData = response.data.user || response.data;
+         const userRole = userData.role;
 
-         // 3. Navigate based on user.role (NOT just 'role')
-         if (user.role === 'vendor') {
+         // Send data to AuthContext
+         login(token, userData);
+
+         // Navigate to the correct matching path from App.jsx
+         if (userRole === 'vendor') {
             navigate('/vendor/sales');
-         } else if (user.role === 'buyer') {
+         } else if (userRole === 'buyer') {
             navigate('/buyer/marketplace');
-         } else if (user.role === 'driver') {
+         } else if (userRole === 'driver') {
             navigate('/driver/deliveries');
-         } else if (user.role === 'admin') {
-            navigate('/admin/admin-dashboard');
+         } else if (userRole === 'admin') {
+            navigate('/admin-dashboard'); // Matches App.jsx route
+         } else {
+            navigate('/');
          }
 
       } catch (err) {
+         console.error("Login error details:", err);
          setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
       }
    };
