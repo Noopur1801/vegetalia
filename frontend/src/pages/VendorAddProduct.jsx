@@ -22,30 +22,35 @@ export default function VendorAddProduct() {
 
    const handleSubmit = async (e) => {
       e.preventDefault();
+      setLoading(true);
 
-      // Package text and file data together
-      const formData = new FormData();
-      formData.append('name', name); // Ensure these match your state variables
-      formData.append('price', price);
-      formData.append('stock', stock);
-      formData.append('description', description);
-      formData.append('availability', availability);
+      // Package text and file data together using your state object values
+      const data = new FormData();
+      data.append('name', formData.name);
+      data.append('price', formData.price);
+      data.append('stock', formData.stock);
+      data.append('description', formData.description);
+      data.append('availability', formData.availability);
       if (image) {
-         formData.append('image', image);
+         data.append('image', image);
       }
 
       try {
-         const res = await axios.post(import.meta.env.VITE_API_URL + '/api/products', formData, {
+         const res = await axios.post(import.meta.env.VITE_API_URL + '/api/products', data, {
             headers: {
-               'Content-Type': 'multipart/form-data', // Required for sending files
+               'Content-Type': 'multipart/form-data',
                Authorization: `Bearer ${token}`
             }
          });
-         alert("Product added successfully!");
-         // Reset form states here
+         setMessage('✅ Product added successfully!');
+         // Reset form
+         setFormData({ name: '', price: '', stock: '', description: '', availability: 'today' });
+         setImage(null);
       } catch (err) {
          console.error(err);
-         alert("Failed to add product");
+         setMessage(err.response?.data?.message || '❌ Failed to add product');
+      } finally {
+         setLoading(false);
       }
    };
 

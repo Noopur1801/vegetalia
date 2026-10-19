@@ -1,8 +1,8 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-// Make sure this matches your exact filename (User.js or usermodel.js)
 import User from '../models/userModel.js'; 
+import VendorProfile from '../models/VendorProfile.js'; // <-- Added to automatically create vendor profiles
 
 const router = express.Router();
 
@@ -26,13 +26,22 @@ router.post('/register', async (req, res) => {
     });
 
     await newUser.save();
+
+    // 🚀 Automatically create a VendorProfile if the user role is vendor
+    if (role === 'vendor') {
+      await VendorProfile.create({
+        userId: newUser._id,
+        businessName: 'My Business'
+      });
+    }
+
     res.status(201).json({ message: "User registered successfully!" });
   } catch (err) { 
     res.status(500).json({ error: err.message }); 
   }
 });
 
-// 2. LOGIN ROUTE (The missing piece!)
+// 2. LOGIN ROUTE
 router.post('/login', async (req, res) => {
   try {
     console.log("👉 1. Login attempt started for:", req.body.email);
@@ -73,7 +82,7 @@ router.post('/login', async (req, res) => {
         user: { id: user._id, email: user.email, role: user.role } 
     });
   } catch (err) { 
-    console.error("🔥 CRASH IN LOGIN ROUTE:", err.message); // <-- THIS FINDS THE BUG!
+    console.error("🔥 CRASH IN LOGIN ROUTE:", err.message);
     res.status(500).json({ error: err.message }); 
   }
 });
