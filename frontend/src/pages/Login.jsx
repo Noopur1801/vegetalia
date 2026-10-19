@@ -16,16 +16,16 @@ export default function Login() {
       setError('');
 
       try {
-         const API_URL = import.meta.env.VITE_API_URL || 'https://vegetation-i19h.onrender.com';
-         // Clean and direct:
-         const response = await axios.post('https://vegetation-i19h.onrender.com/api/auth/login', {
+         // Hardcode the backend URL directly to test and eliminate environment variable issues
+         const API_URL = 'https://vegetation-i19h.onrender.com';
+
+         const response = await axios.post(`${API_URL}/api/auth/login`, {
             email,
             password
          });
 
          const { token, user } = response.data;
 
-         // Safely store user info and token
          if (token) localStorage.setItem('token', token);
          if (user) {
             localStorage.setItem('user', JSON.stringify(user));
@@ -33,7 +33,6 @@ export default function Login() {
 
          const userRole = user?.role || response.data.role;
 
-         // Redirect to correct matching route
          if (userRole === 'vendor') {
             navigate('/vendor/sales');
          } else if (userRole === 'buyer') {
@@ -50,7 +49,6 @@ export default function Login() {
          setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
       }
    };
-
    return (
       <div className="login-container">
          <div className="vegetable-decorations" aria-hidden="true">
