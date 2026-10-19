@@ -10,12 +10,16 @@ export default function ProtectedRoute({ allowedRoles }) {
       return <Navigate to="/login" replace />;
    }
 
-   // 2. If their role doesn't match the required role for the page, reroute them
-   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-      // Send them to their own dashboard based on their actual role
+   // 2. If token exists but user state is still hydrating, show a quick loader instead of crashing
+   if (!user) {
+      return <div style={{ textAlign: 'center', marginTop: '50px' }}>Loading...</div>;
+   }
+
+   // 3. If their role doesn't match the required role for the page, reroute them
+   if (allowedRoles && !allowedRoles.includes(user.role)) {
       return <Navigate to={`/${user.role}-dashboard`} replace />;
    }
 
-   // 3. If they pass both checks, render the requested page
+   // 4. If they pass all checks, render the requested page
    return <Outlet />;
 }
