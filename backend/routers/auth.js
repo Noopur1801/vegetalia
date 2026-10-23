@@ -2,7 +2,9 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/userModel.js'; 
-import VendorProfile from '../models/VendorProfile.js'; // <-- Added to automatically create vendor profiles
+import VendorProfile from '../models/VendorProfile.js';
+import BuyerProfile from '../models/BuyerProfile.js';
+import DriverProfile from '../models/DriverProfile.js';
 
 const router = express.Router();
 
@@ -16,26 +18,29 @@ router.post('/register', async (req, res) => {
       return res.status(403).json({ message: "Admin registration is locked." });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const newUser = new User({
-      email,
-      password: hashedPassword,
-      role
-    });
-
-    await newUser.save();
-
-    // 🚀 Automatically create a VendorProfile if the user role is vendor
-    if (role === 'vendor') {
-      await VendorProfile.create({
-        userId: newUser._id,
-        businessName: 'My Business'
-      });
+    if (!email || !password || !role) {
+      return res.status(400).json({ message: 'Email, password, and role are required.' });
+    }
+    if (!['buyer', 'vendor', 'driver'].includes(role)) {
+      return res.status(400).json({ message: 'Please select a valid account role.' });
     }
 
-    res.status(201).json({ message: "User registered successfully!" });
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const existingUser = await User.findOne({ email: normalizedEmail });
+    if (existingUser) {
+      return res.status(409).json({ message: 'An account with this email already exists.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const profileModel = role === 'buyer' ? 'BuyerProfile' : role === 'vendor' ? 'VendorProfile' : 'DriverProfile';
+    const newUser = await User.create({ email: normalizedEmail, password: hashedPassword, role, profileModel });
+
+    // Create the role-specific profile so the matching dashboard has a profile document.
+    if (role === 'buyer') await BuyerProfile.create({ userId: newUser._id });
+    if (role === 'vendor') await VendorProfile.create({ userId: newUser._id, businessName: 'My Business' });
+    if (role === 'driver') await DriverProfile.create({ userId: newUser._id });
+
+    res.status(201).json({ message: 'User registered successfully!', userId: newUser._id, role: newUser.role });
   } catch (err) { 
     res.status(500).json({ error: err.message }); 
   }
@@ -69,10 +74,15 @@ router.post('/login', async (req, res) => {
     }
     console.log("✅ 4. Password matched!");
 
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET is not configured.');
+      return res.status(500).json({ message: 'Server authentication is not configured.' });
+    }
+
     console.log("👉 5. Generating JWT token...");
     const token = jwt.sign(
         { id: user._id, role: user.role }, 
-        process.env.JWT_SECRET || 'your_secret_key', 
+        process.env.JWT_SECRET, 
         { expiresIn: '1d' }
     );
 

@@ -50,19 +50,24 @@ io.on('connection', (socket) => {
   });
 });
 
-// Database Connection
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('Connected to MongoDB successfully'))
-  .catch((err) => console.error('MongoDB connection error:', err));
-
-// Basic Health Check Route
+// Health check can be used by Render to confirm that the API process is responding.
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ message: 'Vegetillya API is running' });
+  res.status(200).json({ message: 'Vegetillya API is running', database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected' });
 });
 
 const PORT = process.env.PORT || 5000;
 
-// CRITICAL FIX: Use server.listen instead of app.listen so Socket.io works properly!
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Do not accept requests until MongoDB is connected; otherwise writes may hang and look successful in the UI.
+async function startServer() {
+  if (!process.env.MONGO_URI) {
+    throw new Error('MONGO_URI is not configured in the backend environment.');
+  }
+  await mongoose.connect(process.env.MONGO_URI);
+  console.log('Connected to MongoDB successfully');
+  server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+
+startServer().catch((err) => {
+  console.error('Backend startup failed:', err.message);
+  process.exit(1);
 });

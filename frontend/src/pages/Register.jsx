@@ -2,6 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import './Login.css'; // Reusing the beautiful styling from the login page
+import { API_BASE_URL } from '../api.js';
 
 export default function Register() {
    const [email, setEmail] = useState('');
@@ -18,7 +19,7 @@ export default function Register() {
       setSuccess('');
 
       try {
-         const API_URL = import.meta.env.VITE_API_URL || 'https://vegetation-i19h.onrender.com';
+         const API_URL = API_BASE_URL || 'https://vegetation-i19h.onrender.com';
          const cleanBaseUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
 
          await axios.post(`${cleanBaseUrl}/api/auth/register`, {

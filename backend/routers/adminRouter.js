@@ -7,10 +7,15 @@ import Order from '../models/Order.js';
 
 const router = express.Router();
 
+const requireAdmin = (req, res, next) => {
+  if (req.user?.role !== 'admin') return res.status(403).json({ message: 'Admin access required.' });
+  next();
+};
+
 // 1. Get Admin's own profile
-router.get('/profile', verifyToken, async (req, res) => {
+router.get('/profile', verifyToken, requireAdmin, async (req, res) => {
   try {
-    const profile = await AdminProfile.findOne({ userId: req.user.id });
+    const profile = await User.findById(req.user.id).select('-password');
     if (!profile) return res.status(404).json({ message: "Profile not found" });
     res.status(200).json(profile);
   } catch (err) {
@@ -19,7 +24,7 @@ router.get('/profile', verifyToken, async (req, res) => {
 });
 
 // GET: Fetch all buyers
-router.get('/buyers', async (req, res) => {
+router.get('/buyers', verifyToken, requireAdmin, async (req, res) => {
   try {
     const buyers = await User.find({ role: 'buyer' }).select('-password');
     res.status(200).json(buyers);
@@ -29,7 +34,7 @@ router.get('/buyers', async (req, res) => {
 });
 
 // GET: Fetch all vendors
-router.get('/vendors', async (req, res) => {
+router.get('/vendors', verifyToken, requireAdmin, async (req, res) => {
   try {
     const vendors = await User.find({ role: 'vendor' }).select('-password');
     res.status(200).json(vendors);
@@ -58,7 +63,7 @@ router.get('/vendors', async (req, res) => {
 // });
 
 // GET: Fetch all drivers
-router.get('/drivers', async (req, res) => {
+router.get('/drivers', verifyToken, requireAdmin, async (req, res) => {
   try {
     const drivers = await User.find({ role: 'driver' }).select('-password');
     res.status(200).json(drivers);
@@ -68,7 +73,7 @@ router.get('/drivers', async (req, res) => {
 });
 
 // GET: Fetch all orders
-router.get('/orders', async (req, res) => {
+router.get('/orders', verifyToken, requireAdmin, async (req, res) => {
   try {
     // .populate() pulls in the actual buyer name instead of just their ID
     const orders = await Order.find().populate('buyerId', 'name').sort({ createdAt: -1 });
@@ -79,7 +84,7 @@ router.get('/orders', async (req, res) => {
 });
 
 // GET: Fetch platform analytics
-router.get('/analytics', async (req, res) => {
+router.get('/analytics', verifyToken, requireAdmin, async (req, res) => {
   try {
     const totalBuyers = await User.countDocuments({ role: 'buyer' });
     const totalVendors = await User.countDocuments({ role: 'vendor' });
@@ -106,7 +111,7 @@ router.get('/analytics', async (req, res) => {
 });
 
 // 3. NEW: Verify a specific vendor
-router.put('/vendors/:id/verify', verifyToken, async (req, res) => {
+router.put('/vendors/:id/verify', verifyToken, requireAdmin, async (req, res) => {
   try {
     if (req.user.role !== 'admin') return res.status(403).json({ message: "Access denied" });
 
@@ -124,7 +129,7 @@ router.put('/vendors/:id/verify', verifyToken, async (req, res) => {
 });
 
 // PUT: Update logged-in Admin's profile
-router.put('/profile', verifyToken, async (req, res) => {
+router.put('/profile', verifyToken, requireAdmin, async (req, res) => {
   try {
     const currentUserId = req.user.id || req.user._id;
     const { name, email } = req.body;
@@ -142,31 +147,13 @@ router.put('/profile', verifyToken, async (req, res) => {
 });
 
 // GET: Fetch all buyers for Admin dashboard
-router.get('/admin/buyers', verifyToken, async (req, res) => {
+router.get('/admin/buyers', verifyToken, requireAdmin, async (req, res) => {
   try {
     // Find all buyers and exclude the password field for security
     const buyers = await User.find({ role: 'buyer' }).select('-password');
     res.status(200).json(buyers);
   } catch (error) {
     res.status(500).json({ error: error.message });
-  }
-});
-
-// PUT /api/admin/profile (Update admin own profile)
-router.put('/profile', verifyToken, async (req, res) => {
-  try {
-    const { fullName, department } = req.body;
-
-    const updatedProfile = await AdminProfile.findOneAndUpdate(
-      { userId: req.user.id },
-      { $set: { fullName, department } },
-      { new: true }
-    );
-
-    if (!updatedProfile) return res.status(404).json({ message: "Profile not found" });
-    res.status(200).json({ message: "Profile updated successfully", profile: updatedProfile });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
 });
 
