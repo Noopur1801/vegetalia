@@ -1,7 +1,7 @@
 import { useState, useContext } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext.jsx'; // <-- Make sure this import is here
+import { AuthContext } from '../context/AuthContext.jsx';
 import './Login.css';
 
 export default function Login() {
@@ -10,7 +10,11 @@ export default function Login() {
    const [showPassword, setShowPassword] = useState(false);
    const [error, setError] = useState('');
 
-   const { login } = useContext(AuthContext); // <-- Grab login from context
+   // 🔑 Forgot Password States
+   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
+   const [resetEmail, setResetEmail] = useState('');
+
+   const { login } = useContext(AuthContext);
    const navigate = useNavigate();
 
    const handleLogin = async (e) => {
@@ -30,12 +34,10 @@ export default function Login() {
          const { token, user } = response.data;
          const userData = user || { role: response.data.role, id: response.data.userId };
 
-         // 🔑 CRITICAL: Update the AuthContext state so ProtectedRoute recognizes you are logged in!
          login(token, userData);
 
          const userRole = userData?.role;
 
-         // Redirect based on role
          if (userRole === 'vendor') {
             navigate('/vendor/sales');
          } else if (userRole === 'buyer') {
@@ -50,10 +52,24 @@ export default function Login() {
 
       } catch (err) {
          console.error("Full login error:", err);
-         // This will force the exact error details onto your screen
          const serverMsg = err.response?.data?.message;
          const errorDetails = serverMsg || err.message || JSON.stringify(err);
          setError(`Login failed: ${errorDetails}`);
+      }
+   };
+
+   // 🔗 Forgot Password Handler
+   const handlePasswordReset = async (e) => {
+      e.preventDefault();
+      try {
+         const API_URL = import.meta.env.VITE_API_URL || 'https://vegetation-i19h.onrender.com';
+         const cleanBaseUrl = API_URL.endsWith('/') ? API_URL.slice(0, -1) : API_URL;
+         const res = await axios.post(`${cleanBaseUrl}/api/auth/forgot-password`, { email: resetEmail });
+         alert(res.data.message);
+         setIsForgotPasswordOpen(false);
+         setResetEmail('');
+      } catch (err) {
+         alert(err.response?.data?.message || "Failed to send reset link");
       }
    };
 
@@ -87,7 +103,7 @@ export default function Login() {
                   />
                </div>
 
-               <div className="form-group" style={{ position: 'relative' }}>
+               <div className="form-group" style={{ position: 'relative', marginBottom: '4px' }}>
                   <input
                      type={showPassword ? "text" : "password"}
                      className="login-input"
@@ -118,6 +134,16 @@ export default function Login() {
                   </button>
                </div>
 
+               {/* Forgot Password Link */}
+               <div style={{ textAlign: 'right', marginBottom: '16px' }}>
+                  <span
+                     onClick={() => setIsForgotPasswordOpen(true)}
+                     style={{ fontSize: '13px', color: '#4b6043', cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                     Forgot Password?
+                  </span>
+               </div>
+
                <button type="submit" className="btn-primary">
                   Login
                </button>
@@ -127,6 +153,42 @@ export default function Login() {
                Don't have an account? <Link to="/register" className="signup-link">Sign up</Link>
             </div>
          </div>
+
+         {/* Forgot Password Modal Popup */}
+         {isForgotPasswordOpen && (
+            <div style={{
+               position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+               backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
+            }}>
+               <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '8px', width: '90%', maxWidth: '400px', boxSizing: 'border-box' }}>
+                  <h3 style={{ color: '#4b6043', marginTop: 0 }}>Reset Password</h3>
+                  <p style={{ fontSize: '14px', color: '#658354' }}>Enter your registered email address. We will log the reset link to your backend terminal.</p>
+                  <input
+                     type="email"
+                     value={resetEmail}
+                     onChange={(e) => setResetEmail(e.target.value)}
+                     placeholder="Enter your email"
+                     style={{ width: '100%', padding: '10px', margin: '12px 0', border: '1px solid #d1d5db', borderRadius: '4px', boxSizing: 'border-box' }}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                     <button
+                        type="button"
+                        onClick={() => setIsForgotPasswordOpen(false)}
+                        style={{ padding: '8px 12px', background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '4px', cursor: 'pointer' }}
+                     >
+                        Cancel
+                     </button>
+                     <button
+                        type="button"
+                        onClick={handlePasswordReset}
+                        style={{ padding: '8px 12px', background: '#4b6043', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                     >
+                        Send Link
+                     </button>
+                  </div>
+               </div>
+            </div>
+         )}
       </div>
    );
 }

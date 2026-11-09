@@ -4,12 +4,13 @@ import { AuthContext } from '../context/AuthContext';
 
 export default function VendorDashboard() {
    const [profile, setProfile] = useState(null);
+   const [error, setError] = useState('');
    const [stats, setStats] = useState({ totalEarnings: 0, totalOrders: 0 });
    const { token, user } = useContext(AuthContext);
 
    const [isEditing, setIsEditing] = useState(false);
    const [editData, setEditData] = useState({ businessName: '', phone: '', address: '', gstNumber: '' });
-   const [imageFile, setImageFile] = useState(null); // <-- NEW: State for the file
+   const [imageFile, setImageFile] = useState(null);
 
    useEffect(() => {
       const fetchVendorData = async () => {
@@ -32,6 +33,7 @@ export default function VendorDashboard() {
             setStats(statsRes.data);
          } catch (err) {
             console.error("Error fetching vendor data:", err);
+            setError(err.response?.data?.message || "Failed to load profile. Please log out and log back in.");
          }
       };
       if (token) fetchVendorData();
@@ -47,7 +49,6 @@ export default function VendorDashboard() {
 
    const handleSave = async () => {
       try {
-         // Create FormData to send the image file along with text data
          const formData = new FormData();
          formData.append('businessName', editData.businessName);
          formData.append('phone', editData.phone);
@@ -60,18 +61,19 @@ export default function VendorDashboard() {
          const res = await axios.put(import.meta.env.VITE_API_URL + '/api/vendor/profile', formData, {
             headers: {
                Authorization: `Bearer ${token}`,
-               'Content-Type': 'multipart/form-data' // Required for file uploads
+               'Content-Type': 'multipart/form-data'
             }
          });
          setProfile(res.data.profile);
          setIsEditing(false);
-         setImageFile(null); // Reset file input
+         setImageFile(null);
       } catch (err) {
          console.error("Error updating profile:", err);
          alert("Failed to update profile");
       }
    };
 
+   if (error) return <div style={{ padding: '20px', color: '#991b1b', backgroundColor: '#fee2e2', borderRadius: '8px', margin: '20px' }}>{error}</div>;
    if (!profile) return <p style={{ padding: '20px', color: '#658354' }}>Loading profile...</p>;
 
    return (
@@ -81,7 +83,6 @@ export default function VendorDashboard() {
          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px' }}>
             <div style={{ flex: '1 1 300px', backgroundColor: 'white', borderRadius: '12px', border: '1px solid #c7ddb5', overflow: 'hidden' }}>
 
-               {/* Shop Image Banner */}
                <div style={{ width: '100%', height: '150px', backgroundColor: '#e5e7eb', position: 'relative' }}>
                   <img
                      src={profile.shopImage || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800'}
@@ -107,7 +108,7 @@ export default function VendorDashboard() {
                            style={{ fontSize: '20px', padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px', width: '100%', marginRight: '12px' }}
                         />
                      ) : (
-                        <h3 style={{ margin: 0, color: '#4b6043', fontSize: '24px' }}>{profile.businessName || user.name}</h3>
+                        <h3 style={{ margin: 0, color: '#4b6043', fontSize: '24px' }}>{profile.businessName || user?.name}</h3>
                      )}
 
                      {!isEditing && (
@@ -120,7 +121,7 @@ export default function VendorDashboard() {
                   <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
                         <span style={{ color: '#658354', fontSize: '14px', paddingTop: '8px' }}>Email:</span>
-                        <span style={{ color: '#374151', fontWeight: 'bold', fontSize: '14px', paddingTop: '8px' }}>{user.email}</span>
+                        <span style={{ color: '#374151', fontWeight: 'bold', fontSize: '14px', paddingTop: '8px' }}>{profile.userId?.email || user?.email}</span>
                      </div>
 
                      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', paddingBottom: '8px' }}>
@@ -160,7 +161,6 @@ export default function VendorDashboard() {
                </div>
             </div>
 
-            {/* Stats Card */}
             <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
                <div style={{ backgroundColor: '#4b6043', color: 'white', padding: '32px', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                   <p style={{ margin: '0 0 8px 0', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#ddead1' }}>Total Earnings</p>

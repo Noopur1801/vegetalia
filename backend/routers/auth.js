@@ -41,6 +41,42 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// POST /api/auth/forgot-password
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found with this email." });
+    }
+
+    // Generate a temporary reset token valid for 15 minutes
+    const resetToken = jwt.sign(
+      { id: user._id }, 
+      process.env.JWT_SECRET || 'your_secret_key', 
+      { expiresIn: '15m' }
+    );
+    
+    // Construct the reset URL
+    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+
+    // 💡 DEV FRIENDLY TRICK: Prints the link to your terminal
+    console.log("-----------------------------------------");
+    console.log(`🔗 PASSWORD RESET LINK FOR ${email}:`);
+    console.log(resetUrl);
+    console.log("-----------------------------------------");
+
+    res.status(200).json({ 
+      message: "Password reset link generated! Check your backend terminal.",
+      devResetUrl: resetUrl 
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 2. LOGIN ROUTE
 router.post('/login', async (req, res) => {
   try {

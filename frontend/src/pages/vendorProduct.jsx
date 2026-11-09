@@ -1,104 +1,158 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 
-export default function VendorProducts() {
-   const [products, setProducts] = useState([]);
-
-   // 1. ADDED imageUrl TO STATE
-   const [formData, setFormData] = useState({ name: '', category: 'Leafy', price: '', stock: '', unit: 'kg', imageUrl: '' });
+export default function VendorAddProduct() {
    const { token } = useContext(AuthContext);
+   const [loading, setLoading] = useState(false);
+   const [message, setMessage] = useState('');
+   const [image, setImage] = useState(null);
 
-   useEffect(() => {
-      fetchProducts();
-   }, [token]);
+   const [formData, setFormData] = useState({
+      name: '',
+      price: '',
+      stock: '',
+      description: '',
+      availability: 'today'
+   });
 
-   const fetchProducts = async () => {
-      try {
-         const res = await axios.get(import.meta.env.VITE_API_URL + '/api/products/my-products', { headers: { Authorization: `Bearer ${token}` } });
-         setProducts(res.data);
-      } catch (err) { console.error(err); }
+   const handleChange = (e) => {
+      setFormData({ ...formData, [e.target.name]: e.target.value });
    };
 
-   const handleAddProduct = async (e) => {
+   const handleSubmit = async (e) => {
       e.preventDefault();
-      try {
-         await axios.post(import.meta.env.VITE_API_URL + '/api/products', formData, { headers: { Authorization: `Bearer ${token}` } });
-         fetchProducts();
 
-         // 2. CLEAR imageUrl ON RESET
-         setFormData({ name: '', category: 'Leafy', price: '', stock: '', unit: 'kg', imageUrl: '' });
+      if (!token) {
+         setMessage('❌ Session expired or invalid token. Please log in again.');
+         return;
+      }
+
+      setLoading(true);
+
+      const data = new FormData();
+      data.append('name', formData.name);
+      data.append('price', formData.price);
+      data.append('stock', formData.stock);
+      data.append('description', formData.description);
+      data.append('availability', formData.availability);
+      if (image) {
+         data.append('image', image);
+      }
+
+      try {
+         const res = await axios.post(import.meta.env.VITE_API_URL + '/api/products', data, {
+            headers: {
+               'Content-Type': 'multipart/form-data',
+               Authorization: `Bearer ${token}`
+            }
+         });
+         setMessage('✅ Product added successfully!');
+         setFormData({ name: '', price: '', stock: '', description: '', availability: 'today' });
+         setImage(null);
       } catch (err) {
-         alert(err.response?.data?.message || "Failed to add product.");
+         console.error(err);
+         setMessage(err.response?.data?.message || '❌ Failed to add product');
+      } finally {
+         setLoading(false);
       }
    };
 
-   const handleDelete = async (id) => {
-      try {
-         await axios.delete(`import.meta.env.VITE_API_URL + '/api/products/${id}`, { headers: { Authorization: `Bearer ${token}` } });
-         fetchProducts();
-      } catch (err) { console.error(err); }
-   };
-
    return (
-      <div style={{ maxWidth: '900px', margin: '40px auto', padding: '0 20px', fontFamily: 'Inter, sans-serif' }}>
-         <h1 style={{ marginBottom: '24px' }}>Inventory Management</h1>
+      <div style={{ maxWidth: '600px', margin: '0 auto', backgroundColor: 'white', padding: '32px', borderRadius: '12px', border: '1px solid #c7ddb5' }}>
+         <h2 style={{ marginTop: 0, marginBottom: '24px', fontSize: '24px', color: '#4b6043' }}>Add New Product</h2>
 
-         {/* Add Product Form */}
-         <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '8px', border: '1px solid #e5e7eb', marginBottom: '32px' }}>
-            <h2 style={{ fontSize: '18px', marginTop: 0, marginBottom: '16px' }}>Add New Vegetable</h2>
-            <form onSubmit={handleAddProduct} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-               <input type="text" placeholder="Product Name (e.g., Tomatoes)" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required style={{ padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px' }} />
-               <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} style={{ padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px' }}>
-                  <option value="Leafy">Leafy Greens</option>
-                  <option value="Root">Root Vegetables</option>
-                  <option value="Fruiting">Fruiting Vegetables</option>
-                  <option value="Organic">Organic Specials</option>
-               </select>
-               <input type="number" placeholder="Price" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required style={{ padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px' }} />
+         {message && (
+            <div style={{ padding: '12px', marginBottom: '20px', borderRadius: '6px', backgroundColor: message.includes('✅') ? '#dcfce7' : '#fee2e2', color: message.includes('✅') ? '#166534' : '#991b1b' }}>
+               {message}
+            </div>
+         )}
 
-               <div style={{ display: 'flex', gap: '8px' }}>
-                  <input type="number" placeholder="Stock Quantity" value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} required style={{ flex: 1, padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px' }} />
-                  <select value={formData.unit} onChange={e => setFormData({ ...formData, unit: e.target.value })} style={{ width: '80px', padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px' }}>
-                     <option value="kg">kg</option>
-                     <option value="bunch">bunch</option>
-                     <option value="piece">piece</option>
-                  </select>
-               </div>
+         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-               {/* 3. ADDED IMAGE URL INPUT (Spans both columns) */}
-               <input type="url" placeholder="Product Image URL (e.g., https://images.unsplash.com/photo-of-tomato)" value={formData.imageUrl} onChange={e => setFormData({ ...formData, imageUrl: e.target.value })} required style={{ gridColumn: 'span 2', padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px' }} />
+            <div>
+               <label style={{ display: 'block', marginBottom: '8px', color: '#374151', fontWeight: 'bold', fontSize: '14px' }}>Product Name (e.g., Tomatoes, Potatoes)</label>
+               <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', boxSizing: 'border-box' }}
+               />
+            </div>
 
-               <button type="submit" style={{ gridColumn: 'span 2', padding: '10px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Add to Inventory</button>
-            </form>
-         </div>
-
-         {/* Product List */}
-         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '16px' }}>
-            {products.map(p => (
-               <div key={p._id} style={{ border: '1px solid #e5e7eb', padding: '16px', borderRadius: '8px', backgroundColor: 'white', display: 'flex', flexDirection: 'column' }}>
-
-                  {/* 4. RENDER THE IMAGE IN THE PRODUCT CARD */}
-                  <img
-                     src={p.imageUrl || 'https://via.placeholder.com/150?text=No+Image'}
-                     alt={p.name}
-                     style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '4px', marginBottom: '12px' }}
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+               <div style={{ flex: '1 1 200px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', color: '#374151', fontWeight: 'bold', fontSize: '14px' }}>Price (₹ per kg)</label>
+                  <input
+                     type="number"
+                     name="price"
+                     value={formData.price}
+                     onChange={handleChange}
+                     required
+                     min="1"
+                     style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', boxSizing: 'border-box' }}
                   />
-
-                  <h3 style={{ margin: '0 0 8px 0' }}>{p.name}</h3>
-                  <div>
-                     <span style={{ fontSize: '12px', backgroundColor: '#f3f4f6', padding: '2px 8px', borderRadius: '12px' }}>{p.category}</span>
-                  </div>
-                  <p style={{ margin: '12px 0 4px 0', fontWeight: 'bold' }}>₹{p.price} / {p.unit}</p>
-                  <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#6b7280' }}>Stock: {p.stock} {p.unit}</p>
-
-                  {/* flexGrow keeps the delete button anchored to the bottom if image sizes differ */}
-                  <div style={{ flexGrow: 1 }}></div>
-
-                  <button onClick={() => handleDelete(p._id)} style={{ width: '100%', padding: '6px', backgroundColor: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '4px', cursor: 'pointer', marginTop: '12px' }}>Delete</button>
                </div>
-            ))}
-         </div>
+
+               <div style={{ flex: '1 1 200px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', color: '#374151', fontWeight: 'bold', fontSize: '14px' }}>Stock Available (kg)</label>
+                  <input
+                     type="number"
+                     name="stock"
+                     value={formData.stock}
+                     onChange={handleChange}
+                     required
+                     min="1"
+                     style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', boxSizing: 'border-box' }}
+                  />
+               </div>
+            </div>
+
+            <div>
+               <label style={{ display: 'block', marginBottom: '8px', color: '#374151', fontWeight: 'bold', fontSize: '14px' }}>Sidebar Availability Category</label>
+               <select
+                  name="availability"
+                  value={formData.availability}
+                  onChange={handleChange}
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', backgroundColor: 'white', boxSizing: 'border-box' }}
+               >
+                  <option value="today">Available Today</option>
+                  <option value="yesterday">Available Yesterday</option>
+                  <option value="15_days">Available in 15 Days</option>
+               </select>
+            </div>
+
+            <div>
+               <label style={{ display: 'block', marginBottom: '8px', color: '#374151', fontWeight: 'bold', fontSize: '14px' }}>Short Description</label>
+               <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows="3"
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', resize: 'vertical', boxSizing: 'border-box' }}
+               />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '14px' }}>Product Image</label>
+               <input
+                  type="file"
+                  accept="image/png, image/jpeg, image/webp"
+                  onChange={(e) => setImage(e.target.files[0])}
+                  style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '4px', boxSizing: 'border-box' }}
+               />
+            </div>
+
+            <button
+               type="submit"
+               disabled={loading}
+               style={{ marginTop: '12px', padding: '12px', backgroundColor: '#4b6043', color: 'white', border: 'none', borderRadius: '6px', fontSize: '16px', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer' }}
+            >
+               {loading ? 'Adding Product...' : 'Add Product'}
+            </button>
+         </form>
       </div>
    );
 }
