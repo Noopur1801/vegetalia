@@ -115,7 +115,7 @@ export default function VendorAddProduct() {
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', backgroundColor: 'white' }}
                >
                   <option value="today">Available Today</option>
-                  <option value="yesterday">Available Yesterday</option>
+                  <option value="tomorrow">Available Tomorrow</option>
                   <option value="15_days">Available in 15 Days</option>
                </select>
             </div>
